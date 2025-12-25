@@ -12,135 +12,80 @@ body{
   text-align:center;
   padding:20px;
 }
-
 h1{font-size:2.6em;color:#ff5722}
-
 #stats{font-size:1.2em;margin:6px;color:#444}
 
-/* ===== Progress ===== */
+/* Progress */
 #levelBox{max-width:520px;margin:12px auto}
 #levelText{font-size:1.2em;margin-bottom:6px}
-
-.progress-bg{
-  width:100%;
-  height:22px;
-  background:#ddd;
-  border-radius:20px;
-  overflow:hidden;
-}
+.progress-bg{height:22px;background:#ddd;border-radius:20px;overflow:hidden}
 .progress-bar{
-  height:100%;
-  width:0%;
+  height:100%;width:0%;
   background:linear-gradient(90deg,#ff9800,#ff5722);
   transition:width 0.4s ease;
 }
-
 #nextInfo{font-size:1em;margin-top:4px;color:#555}
 
 #question{font-size:3.2em;margin:16px 0}
-
 #hintBtn{
-  font-size:1.2em;
-  padding:6px 20px;
-  border-radius:20px;
-  border:none;
-  background:#ffeb3b;
+  font-size:1.2em;padding:6px 20px;border-radius:20px;
+  border:none;background:#ffeb3b;
 }
 
 .visual-answer{
-  display:flex;
-  justify-content:center;
-  gap:30px;
-  flex-wrap:wrap;
-  margin-top:10px;
+  display:flex;justify-content:center;gap:30px;
+  flex-wrap:wrap;margin-top:10px;
 }
-
 .dot-row{display:flex;justify-content:center}
 .dot{
-  width:24px;height:24px;margin:4px;
-  border-radius:50%;
+  width:24px;height:24px;margin:4px;border-radius:50%;
   background:radial-gradient(circle,#ffd180,#ff5722,#d84315);
   animation:pulse 1.2s infinite;
 }
-
 @keyframes pulse{50%{transform:scale(1.15)}}
 
-input{
-  font-size:2.4em;
-  width:220px;
-  text-align:center;
-}
+input{font-size:2.4em;width:220px;text-align:center}
 
 .keypad{
-  display:grid;
-  grid-template-columns:repeat(3,110px);
-  gap:12px;
-  justify-content:center;
-  margin:20px auto;
+  display:grid;grid-template-columns:repeat(3,110px);
+  gap:12px;justify-content:center;margin:20px auto;
 }
-
 .keypad button{
-  font-size:2em;
-  padding:20px;
-  border-radius:16px;
-  border:none;
-  background:#fff;
+  font-size:2em;padding:20px;border-radius:16px;
+  border:none;background:#fff;
 }
-
 .ok{background:#00c853;color:#fff}
 .clear{background:#ff5252;color:#fff}
-
 #message{font-size:1.6em;height:1.5em}
 
-/* ===== Stickers ===== */
+/* Stickers */
 #stickerGrid{
-  display:grid;
-  grid-template-columns:repeat(3,180px);
-  gap:20px;
-  justify-content:center;
-  margin-top:20px;
+  display:grid;grid-template-columns:repeat(3,180px);
+  gap:20px;justify-content:center;margin-top:20px;
 }
-
 .sticker{
-  width:180px;
-  height:180px;
-  background:#fff8e1;
-  border-radius:26px;
-  border:4px solid #ff9800;
-  display:flex;
-  align-items:center;
-  justify-content:center;
+  width:180px;height:180px;background:#fff8e1;
+  border-radius:26px;border:4px solid #ff9800;
+  display:flex;align-items:center;justify-content:center;
   cursor:pointer;
 }
-
 .sticker img{width:170px}
 
-/* ===== Zoom ===== */
+/* Zoom */
 #zoom{
-  position:fixed;
-  inset:0;
-  background:rgba(0,0,0,0.85);
-  display:none;
-  align-items:center;
-  justify-content:center;
-  z-index:3000;
+  position:fixed;inset:0;background:rgba(0,0,0,0.85);
+  display:none;align-items:center;justify-content:center;z-index:3000;
 }
 #zoom img{width:90vw;max-width:520px}
 
-/* ===== Level Up ===== */
+/* Level Up */
 #overlay{
-  position:fixed;
-  inset:0;
+  position:fixed;inset:0;
   background:radial-gradient(circle,#ffd740,#ff5722);
-  display:none;
-  align-items:center;
-  justify-content:center;
-  z-index:2000;
+  display:none;align-items:center;justify-content:center;z-index:2000;
 }
 #overlay h2{
-  font-size:4.8em;
-  color:white;
-  animation:pop 1.2s ease-out;
+  font-size:4.8em;color:white;animation:pop 1.2s ease-out;
 }
 @keyframes pop{
   0%{transform:scale(0.2);opacity:0}
@@ -191,33 +136,31 @@ input{
 <div id="zoom" onclick="this.style.display='none'"><img></div>
 
 <script>
-let a,b,total=0,hint=false,level=1;
+let a,b,total=0,hint=false;
+let level=1;
+let nextLevelAt = 10;   // ★ 固定目標
 
-/* ===== Threshold logic ===== */
-function nextThreshold(){
-  if(total < 50){
-    return Math.ceil((total+1)/10)*10;
+const stamps=[...Array(10)].map((_,i)=>`volst (${i+1}).png`);
+stamps.sort(()=>Math.random()-0.5); // no duplicates
+
+function calcNextLevel(){
+  if(nextLevelAt < 50){
+    nextLevelAt += 10;
+  }else{
+    nextLevelAt += 20;
   }
-  return 50 + Math.ceil((total-50+1)/20)*20;
 }
 
-/* ===== Stickers (no duplicates) ===== */
-let stickerPool=[...Array(10)].map((_,i)=>`volst (${i+1}).png`);
-stickerPool.sort(()=>Math.random()-0.5);
-
-/* ===== Progress ===== */
 function updateProgress(){
-  const next=nextThreshold();
-  const prev=level===1?0:(level<=5?(level-1)*10:50+(level-6)*20);
-  const pct=Math.min(100,((total-prev)/(next-prev))*100);
-  progress.style.width=pct+"%";
-  levelText.textContent="Level "+level;
-  nextInfo.textContent=`Next level in ${next-total} questions`;
+  const prev = level === 1 ? 0 : (nextLevelAt - (nextLevelAt<50?10:20));
+  const pct = Math.min(100, ((total - prev)/(nextLevelAt - prev))*100);
+  progress.style.width = pct + "%";
+  levelText.textContent = "Level " + level;
+  nextInfo.textContent = `Next level in ${nextLevelAt - total} questions`;
 }
 
-/* ===== Question generation ===== */
 function q(){
-  const limit = total < 20 ? 9 : 12;
+  const limit = total < 50 ? 9 : 12;
   a=Math.floor(Math.random()*limit)+1;
   b=Math.floor(Math.random()*limit)+1;
   question.textContent=`${a} × ${b}`;
@@ -226,15 +169,14 @@ function q(){
   answer.value="";
 }
 
-/* ===== Hint ===== */
 function showHint(){
   if(hint)return;
   hint=true;
   for(let i=0;i<a;i++){
-    let r=document.createElement("div");
+    const r=document.createElement("div");
     r.className="dot-row";
     for(let j=0;j<b;j++){
-      let d=document.createElement("div");
+      const d=document.createElement("div");
       d.className="dot";
       r.appendChild(d);
     }
@@ -242,20 +184,19 @@ function showHint(){
   }
 }
 
-/* ===== Input ===== */
-function add(n){if(answer.value.length<3)answer.value+=n}
-function clr(){answer.value=""}
+function add(n){ if(answer.value.length<3)answer.value+=n }
+function clr(){ answer.value="" }
 
-/* ===== Check ===== */
 function check(){
   if(+answer.value===a*b){
     total++;
     count.textContent=total;
     message.textContent="🎉 Correct!";
 
-    if(total===nextThreshold()){
+    if(total === nextLevelAt){
       level++;
       levelUp();
+      calcNextLevel();
     }
 
     updateProgress();
@@ -265,14 +206,13 @@ function check(){
   }
 }
 
-/* ===== Level Up ===== */
 function levelUp(){
   overlay.style.display="flex";
   setTimeout(()=>overlay.style.display="none",1200);
 
-  if(stickerPool.length===0)return;
+  if(stamps.length===0)return;
 
-  const imgSrc=stickerPool.shift();
+  const imgSrc = stamps.shift();
   const s=document.createElement("div");
   s.className="sticker";
   const img=document.createElement("img");
